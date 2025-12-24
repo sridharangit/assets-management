@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  .container.mt-4
+    h3.mb-3 Employee List
+    table#empTable.table.table-striped
+      thead
+        tr
+          th Name
+          th Email
+          th Branch
+          th Status
+      tbody
+        each emp in employee
+          tr
+            td= emp.c_name
+            td= emp.c_email
+            td= emp.c_branch
+            td= emp.n_status==1 ? "Active" : "Inactive"
+  script.
+    $(document).ready(function () {
+        $('#empTable').DataTable();
+    });

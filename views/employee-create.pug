@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  .container.mt-4
+    h3.mb-3 Add Employee
+    form(method="POST" action="/employee/create")
+      .mb-3
+        label.form-label Name *
+        input.form-control(type="text" name="name" required placeholder="Enter employee name")
+
+      .mb-3
+        label.form-label Email *
+        input.form-control(type="email" name="email" required placeholder="Enter employee email")
+
+      .mb-3
+        label.form-label Branch
+        input.form-control(type="text" name="branch" placeholder="Enter branch")
+
+      .form-check.mb-3
+        input.form-check-input(type="checkbox" name="status" checked)
+        label.form-check-label Active
+
+      button.btn.btn-primary(type="submit") Create Employee

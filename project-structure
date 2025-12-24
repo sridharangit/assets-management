@@ -1,0 +1,30 @@
+asset-management/
+│── server.js
+│── config/
+│     └── database.js
+│── models/
+│     ├── Employee.js
+│     ├── Asset.js
+│     ├── AssetCategory.js
+│     └── AssetTransaction.js
+│── routes/
+│     ├── employees.js
+│     ├── assets.js
+│     └── transactions.js
+│── views/  (Jade/Pug templates)
+│     ├── layout.pug
+│     ├── employees.pug
+│     ├── assets.pug
+│     ├── stock.pug
+│     ├── issueAsset.pug
+│     ├── returnAsset.pug
+│     ├── scrapAsset.pug
+│     └── assetHistory.pug
+│── public/
+│     ├── css/
+│     └── js/
+│── controllers/
+│     ├── employeeController.js
+│     ├── assetController.js
+│     └── transactionController.js
+│── package.json
