@@ -3,39 +3,57 @@ extends login-layout
 block content
   .container-fluid
     .row.vh-100
-      .col-md-7.d-flex.align-items-center.justify-content-center.bg-light
-        img.img-fluid.rounded.shadow(src="/images/login-banner.png" alt="Login Image")
-      .col-md-5.d-flex.align-items-center.justify-content-center
-        .w-75
-          h2.text-center.mb-4 Asset Management
-          p.text-center.text-muted Please sign-in to your account
-          form(method="POST" action="/employee/login")
-            .mb-3
-              label.form-label.fw-bold Email *
-              .input-group
-                span.input-group-text
-                  i.bi.bi-envelope
-                input.form-control(type="email" name="email" placeholder="Enter email" value="kt@gmail.com" required)
-            .mb-3
-              label.form-label.fw-bold Password *
-              .input-group
-                span.input-group-text
-                  i.bi.bi-key
-                input.form-control(type="password" id="passwordField" value="Kt@123" name="password" placeholder="Enter password" required)
-                span.input-group-text(style="cursor:pointer" onclick="togglePassword()")
-                  i#eyeIcon.bi.bi-eye
-              button.btn.btn-secondary.mt-3.w-100.fw-bold(type="submit") Sign in
+      .col-md-6.d-flex.align-items-center.justify-content-center(style="background:#e8f2ff")
+        img.img-fluid.rounded(src="/images/login-banner.jpg" style="width:75%;" alt="Login Image")
+
+      .col-md-6.d-flex.align-items-center.justify-content-center
+        .login-card
+          h2.text-center.fw-bold.mb-2 ASSETS MANAGEMENT
+          p.text-center.text-muted.mb-4 Enter your credentials to login
+        
+          form(onSubmit="signIn(event)")
+            .mb-3.input-wrapper
+              input.form-input(type="text" name="email" value="ktadmin@gmail.com" placeholder=" " required)
+              label.form-floating-label Username *
+
+            .mb-3.input-wrapper
+              input.form-input(type="password" id="passwordField" value="Kt@1234" placeholder=" " required)
+              label.form-floating-label Password *
+              span.password-toggle(onclick="togglePassword()")
+                i#eyeIcon.fa.fa-eye
+
+            .d-flex.justify-content-between.align-items-center.mb-3
+              .d-flex.align-items-center.gap-2
+                input(type="checkbox")
+                span.text-muted Remember me
+              a.text-muted(href="#") Forgot Password?
+
+            button.login-btn.w-100(type="submit") Login
+
+            p.text-center.mt-3.text-muted
+              | Don't have an account?
+              a.ms-1.fw-bold(href="#") Sign up
+
+          .social-icons.d-flex.justify-content-center.gap-3.mt-4
+            i.fa-brands.fa-google
+            i.fa-brands.fa-facebook
+            i.fa-brands.fa-apple
+
   script.
     function togglePassword() {
       const pass = document.getElementById("passwordField");
       const eye  = document.getElementById("eyeIcon");
       if (pass.type === "password") {
         pass.type = "text";
-        eye.classList.remove("bi-eye");
-        eye.classList.add("bi-eye-slash");
+        eye.classList.remove("fa-eye");
+        eye.classList.add("fa-eye-slash");
       } else {
         pass.type = "password";
-        eye.classList.remove("bi-eye-slash");
-        eye.classList.add("bi-eye");
+        eye.classList.remove("fa-eye-slash");
+        eye.classList.add("fa-eye");
       }
+    }
+    function signIn(event) {
+      event.preventDefault();
+      window.location.href = '/employee';
     }

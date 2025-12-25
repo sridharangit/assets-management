@@ -1,23 +1,106 @@
 extends layout
 
 block content
-  .container.mt-4
-    h3.mb-3 Add Employee
-    form(method="POST" action="/employee/create")
-      .mb-3
-        label.form-label Name *
-        input.form-control(type="text" name="name" required placeholder="Enter employee name")
+  .p-4
+    .card.shadow-sm.rounded-4.p-3
+      h3.fw-bold.mb-3.text-dark #{editMode ? 'Edit Employee' : 'Add Employee'}
 
-      .mb-3
-        label.form-label Email *
-        input.form-control(type="email" name="email" required placeholder="Enter employee email")
+      form#employeeForm
+        input(type="hidden" name="id" id="empId")
 
-      .mb-3
-        label.form-label Branch
-        input.form-control(type="text" name="branch" placeholder="Enter branch")
+        // First row
+        .row.mb-3
+          .col-md-4
+            label.form-label Name *
+            input#empName.form-control(type="text" name="name" required placeholder="Enter employee name")
+          .col-md-4
+            label.form-label Email *
+            input#empEmail.form-control(type="email" name="email" required placeholder="Enter employee email")
+          .col-md-4
+            label.form-label Branch
+            input#empBranch.form-control(type="text" name="branch" placeholder="Enter branch")
 
-      .form-check.mb-3
-        input.form-check-input(type="checkbox" name="status" checked)
-        label.form-check-label Active
+        // Second row - status checkbox aligned left
+        .row.mb-3
+          .col-md-4.d-flex.align-items-center
+            .form-check
+              input#empStatus.form-check-input(type="checkbox" name="status" checked)
+              label.form-check-label.ms-2(for="empStatus") Active
 
-      button.btn.btn-primary(type="submit") Create Employee
+        button#submitBtn.btn.btn-primary.mt-3(type="submit") #{editMode ? 'Update Employee' : 'Create Employee'}
+
+      .mt-3
+        span#msg.text-success
+
+  // Script directly in content block
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const empId = document.getElementById('empId');
+      const empName = document.getElementById('empName');
+      const empEmail = document.getElementById('empEmail');
+      const empBranch = document.getElementById('empBranch');
+      const empStatus = document.getElementById('empStatus');
+      const submitBtn = document.getElementById('submitBtn');
+      const form = document.getElementById('employeeForm');
+      const msg = document.getElementById('msg');
+
+      // Get editMode from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const editMode = urlParams.has('id');
+
+      if(editMode){
+        const id = urlParams.get('id');
+        fetch(`/employee/get/${id}`)
+          .then(res => res.json())
+          .then(data => {
+            if(data.success){
+              const emp = data.employee;
+              empId.value = emp.employee_id;
+              empName.value = emp.c_name;
+              empEmail.value = emp.c_email;
+              empBranch.value = emp.c_branch;
+              empStatus.checked = emp.n_status === 1;
+              submitBtn.innerText = 'Update Employee';
+            } else {
+              msg.innerText = 'Error: ' + data.error;
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            msg.innerText = 'Error loading employee data.';
+          });
+      }
+
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+
+        const data = {
+          name: empName.value.trim(),
+          email: empEmail.value.trim(),
+          branch: empBranch.value.trim(),
+          status: empStatus.checked ? 1 : 0
+        };
+
+        const id = empId.value;
+        const url = id ? `/employee/edit/${id}` : '/employee/create';
+
+        fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+          if(res.success){
+            msg.innerText = id ? 'Employee updated successfully!' : 'Employee created successfully!';
+            setTimeout(() => window.location.href = '/employee', 1000);
+          } else {
+            msg.innerText = 'Error: ' + res.error;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          msg.innerText = 'An error occurred while saving.';
+        });
+      });
+    });
