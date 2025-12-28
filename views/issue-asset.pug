@@ -1,0 +1,71 @@
+extends layout
+block content
+  .p-4
+    .card.shadow-sm.rounded-4.p-3
+      h4.fw-bold.mb-3.text-dark Issue Asset
+      div#alertBox.alert.mb-3.mt-3(style="display:none")
+      form#issueForm
+        .row.mb-3
+          .col-md-6
+            label.form-label Employee *
+            select#employee.form-select(required)
+              option(value="" disabled selected) Choose Employee
+              each emp in employees
+                option(value=emp.employee_id) #{emp.c_name} (#{emp.c_branch})
+
+          .col-md-6
+            label.form-label Asset *
+            select#asset.form-select(required)
+              option(value="" disabled selected) Choose Asset
+              each ast in assets
+                option(value=ast.asset_id) #{ast.c_serial} - #{ast.c_type} (#{ast.c_branch})
+
+        .row.mb-3
+          .col-md-12
+            label.form-label Reason *
+            input#reason.form-control(type="text" required placeholder="Enter issue reason")
+
+        button.btn.btn-danger.mt-2(type="submit") 
+          i.bi.bi-send-check-fill.me-2
+          | Issue
+
+  script.
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const form = document.getElementById('issueForm');
+      const alertBox = document.getElementById('alertBox');
+      const employee = document.getElementById('employee');
+      const asset = document.getElementById('asset');
+      const reason = document.getElementById('reason');
+
+      function showMessage(msg, ok=true){
+        alertBox.style.display='block';
+        alertBox.innerText = msg;
+        alertBox.className = ok?'alert alert-success':'alert alert-danger';
+      }
+
+      form.addEventListener('submit', e=>{
+        e.preventDefault();
+        const emp = employee.value;
+        const ast = asset.value;
+        const r   = reason.value.trim();
+
+        if(!emp || !ast || !r){
+          showMessage('All fields required!', false);
+          return;
+        }
+
+        fetch('/assets/issue',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ employee_id: emp, asset_id: ast, reason: r })
+        })
+        .then(r=>r.json())
+        .then(d=>{
+          if(d.success){
+            showMessage('Asset issued successfully!', true);
+            setTimeout(()=>location.reload(), 1000);
+          } else showMessage('Error: ' + d.error, false);
+        })
+        .catch(()=>showMessage('Server error', false));
+      });
+    });

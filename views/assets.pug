@@ -1,0 +1,110 @@
+extends layout
+
+block content
+  .p-4
+    .card.shadow-sm.rounded-4.p-3
+      .d-flex.justify-content-between.align-items-center.mb-3
+        h4.fw-bold.text-dark Asset Master List
+        a.btn.btn-primary.rounded-3(href="/assets/create")
+          i.bi.bi-plus-lg.me-2
+          | Add Asset
+
+      .d-flex.mb-3.align-items-center.gap-3
+        label.me-2 Filter:
+        select#typeFilter.form-select(style="width:200px")
+          option(value="all" selected) All Types
+          each cat in categories
+            option(value=cat.c_name) #{cat.c_name}
+
+        label.me-2 Search:
+        input#assetSearch.form-control(style="width:200px" placeholder="Search..")
+
+      table#assetTable.table.table-striped.table-bordered.align-middle
+        thead.bg-dark.text-white
+          tr
+            th #
+            th Serial No
+            th Type
+            th Make
+            th Model
+            th Branch
+            th Status
+            th Action
+        tbody
+          each ast, i in assets
+            tr
+              td #{i+1}
+              td #{ast.c_serial}
+              td #{ast.c_type}
+              td #{ast.c_make}
+              td #{ast.c_model}
+              td #{ast.c_branch}
+              td
+                if ast.n_status == 1
+                  span.badge.bg-success Active
+                else
+                  span.badge.bg-secondary Inactive
+              td
+                button.btn.btn-sm.btn-warning.me-2(onclick=`editAsset(${ast.asset_id})`)
+                  i.bi.bi-pencil
+                button.btn.btn-sm.btn-danger(onclick=`openDelModal(${ast.asset_id})`)
+                  i.bi.bi-trash
+
+  div#deleteModal.modal.fade(tabindex="-1" aria-hidden="true")
+    div.modal-dialog
+      div.modal-content
+        div.modal-header
+          h5.modal-title Delete Asset
+          button.btn-close(type="button" data-bs-dismiss="modal")
+        div.modal-body
+          p Are you sure you want to delete this Asset?
+        div.modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancel
+          button#confirmDelete.btn.btn-danger(type="button") Delete
+
+  link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css")
+  link(rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css")
+
+  script(src="https://code.jquery.com/jquery-3.7.0.min.js")
+  script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js")
+  script(src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js")
+  script(src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js")
+
+  script.
+    let deleteId = null;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+
+    $(function(){
+      const t = $('#assetTable').DataTable({ pageLength:5, lengthChange:false });
+
+      $('#typeFilter').on('change', function(){
+        const v = this.value;
+        if(v==='all') t.column(2).search('').draw();
+        else t.column(2).search(v).draw();
+      });
+
+      $('#assetSearch').on('keyup', function(){
+        t.search(this.value).draw();
+      });
+
+      window.editAsset = id => location.href = '/assets/edit/' + id;
+    });
+
+    window.openDelModal = id => {
+      deleteId = id;
+      modal.show();
+    };
+
+    confirmDeleteBtn.addEventListener('click', ()=>{
+      if(!deleteId) return;
+      fetch('/assets/delete/' + deleteId, { method:'POST' })
+        .then(r=>r.json())
+        .then(d=>{
+          if(d.success){
+            modal.hide();
+            location.reload();
+          } else alert(d.error);
+        })
+        .catch(err=>alert('Server error'));
+    });

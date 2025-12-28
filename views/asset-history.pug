@@ -1,0 +1,87 @@
+extends layout
+
+block content
+  .p-4
+    .card.shadow-sm.rounded-4.p-3
+      h4.fw-bold.text-dark
+        | Asset History
+      .row.mb-3.mt-3
+        .col-md-4
+          label.form-label Select Asset *
+          select#assetFilter.form-select
+            option(value="" disabled selected) Choose Asset
+            each a in assets
+              option(value=a.asset_id) #{a.c_serial} - #{a.c_type}
+
+      div#assetInfo.mt-3.text-muted.fw-semibold
+      table#historyTable.table.table-striped.table-bordered.align-middle.mt-3(style="display:none")
+        thead.bg-dark.text-white
+          tr
+            th #
+            th Action
+            th Employee
+            th Reason
+            th Date
+        tbody#historyBody
+      div#historyFooter.mt-4.p-3.border-top.fw-bold.text-dark(style="display:none")
+
+  script.
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const filter = document.getElementById('assetFilter');
+      const table  = document.getElementById('historyTable');
+      const body   = document.getElementById('historyBody');
+      const footer = document.getElementById('historyFooter');
+      const info   = document.getElementById('assetInfo');
+
+      filter.addEventListener('change', ()=>{
+        const id = filter.value;
+        fetch('/assets/history/data/' + id)
+        .then(r=>r.json())
+        .then(d=>{
+            if(!d.success){
+            alert(d.error);
+            return;
+            }
+
+            const a = d.asset;
+            info.innerText = `Serial: ${a.c_serial} | Type: ${a.c_type} | Branch: ${a.c_branch}`;
+
+            if ($.fn.DataTable.isDataTable('#historyTable')) {
+            $('#historyTable').DataTable().clear().destroy();
+            }
+
+            body.innerHTML = '';
+
+            d.history.forEach((h,i)=>{
+            body.innerHTML += `
+                <tr>
+                <td>${i+1}</td>
+                <td>${h.action}</td>
+                <td>${h.employee_name}</td>
+                <td>${h.reason}</td>
+                <td>${formatAction(h.action)}</td>
+                </tr>`;
+            });
+
+            table.style.display  = 'table';
+            footer.style.display = 'block';
+            footer.innerText = `Total Asset Value Invested: ₹ ${parseFloat(a.n_value).toFixed(2)}`;
+
+            $('#historyTable').DataTable({ pageLength:5, lengthChange:false });
+        })
+        .catch(()=>showMessage('Server error', false));
+        });
+
+      $(document).on('change','#assetFilter',function(){
+        setTimeout(()=>{
+          $('#historyTable').DataTable({ pageLength:5, destroy:true, lengthChange:false });
+        }, 300);
+      });
+    });
+    function formatAction(a){
+        if(a==='ISSUE') return `<span class="badge bg-warning text-dark">Issued</span>`;
+        if(a==='RETURN') return `<span class="badge bg-info text-dark">Returned</span>`;
+        if(a==='SCRAP') return `<span class="badge bg-danger">Scrapped</span>`;
+        return a;
+    }
+

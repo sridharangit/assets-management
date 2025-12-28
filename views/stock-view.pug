@@ -1,0 +1,50 @@
+extends layout
+
+block content
+  .p-4
+    .card.shadow-sm.rounded-4.p-3
+      h4.fw-bold.mb-3.text-dark Stock Assets View
+      table#stockTable.table.table-striped.table-bordered.align-middle
+        thead.bg-dark.text-white
+          tr
+            th #
+            th Serial Number
+            th Asset Type
+            th Make
+            th Model
+            th Branch
+            th Value (₹)
+        tbody
+          each ast, i in assets
+            tr
+              td #{i+1}
+              td #{ast.c_serial}
+              td #{ast.c_type}
+              td #{ast.c_make || '-'}
+              td #{ast.c_model || '-'}
+              td #{ast.c_branch || '-'}
+              td #{parseFloat(ast.n_value || 0).toFixed(2)}
+
+      .mt-4.p-3.bg-light.rounded-3.border
+        h6.fw-bold.text-dark Branch Wise Totals:
+        table.table.table-bordered
+          thead
+            tr
+              th Branch
+              th Total Assets
+              th Total Value (₹)
+          tbody
+            each v, k in summary
+              tr
+                td #{k}
+                td #{v.count}
+                td #{v.value.toFixed(2)}
+
+        hr
+        h5.fw-bold.text-end.text-dark Total Stock Assets: #{totalCount}
+        h5.fw-bold.text-end.text-primary Total Stock Value: ₹ #{totalValue.toFixed(2)}
+  block scripts
+  script.
+    $(function(){
+      $('#stockTable').DataTable({ pageLength: 10, lengthChange: false });
+    });

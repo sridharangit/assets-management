@@ -12,6 +12,7 @@ exports.createEmployee = async (req, res) => {
       c_name: req.body.name,
       c_email: req.body.email,
       c_branch: req.body.branch,
+      n_mobile: req.body.mobile,
       n_status: req.body.status ? 1 : 0
     });
     res.json({ success: true });
@@ -40,6 +41,7 @@ exports.updateEmployee = async (req, res) => {
         c_name: req.body.name,
         c_email: req.body.email,
         c_branch: req.body.branch,
+        n_mobile: req.body.mobile,
         n_status: req.body.status ? 1 : 0
       },
       { where: { employee_id: req.params.id } }

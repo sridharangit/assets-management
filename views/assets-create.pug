@@ -1,0 +1,114 @@
+extends layout
+
+block content
+  .p-4
+    .card.shadow-sm.rounded-4.p-3
+      h4.fw-bold.mb-3.text-dark #{editMode ? 'Edit Asset' : 'Add Asset'}
+      div#alertBox.alert.mb-3.mt-3(style="display:none")
+      form#assetForm
+        input#assetId(type="hidden" name="id" value="")
+        .row.mb-3
+          .col-md-4
+            label.form-label Serial Number *
+            input#serial.form-control(type="text" name="serial" maxlenght="70" required placeholder="Enter serial number")
+
+          .col-md-4
+            label.form-label Asset Type *
+            select#type.form-select(name="type" required)
+              option(value="" disabled selected) Select Asset Type
+              each cat in categories
+                option(value=cat.c_name) #{cat.c_name}
+
+          .col-md-4
+            label.form-label Branch
+            input#branch.form-control(type="text" name="branch" maxlenght="70" placeholder="Enter branch")
+
+        .row.mb-3
+          .col-md-4
+            label.form-label Make
+            input#make.form-control(type="text" name="make" maxlenght="70" placeholder="Enter make")
+
+          .col-md-4
+            label.form-label Model
+            input#model.form-control(type="text" name="model" maxlenght="70" placeholder="Enter model")
+
+          .col-md-4
+            label.form-label Asset Value *
+            input#value.form-control(type="number" name="n_value" min="0" step="0.01" required placeholder="Enter asset value")
+
+        .row.mb-3
+          .col-md-4.d-flex.align-items-center
+            .form-check.mt-4
+              input#status.form-check-input(type="checkbox" name="status" checked)
+              label.form-check-label.ms-2 Active
+        button.btn.btn-primary.mt-3(type="submit") #{editMode ? 'Update Asset' : 'Create Asset'}
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const form      = document.getElementById('assetForm');
+      const alertBox  = document.getElementById('alertBox');
+      const assetId   = document.getElementById('assetId');
+      const serial    = document.getElementById('serial');
+      const type      = document.getElementById('type');
+      const make      = document.getElementById('make');
+      const model     = document.getElementById('model');
+      const branch    = document.getElementById('branch');
+      const value     = document.getElementById('value');
+      const status    = document.getElementById('status');
+
+      function showMessage(msg, ok = true) {
+        alertBox.style.display = 'block';
+        alertBox.innerText = msg;
+        alertBox.className = ok ? 'alert alert-success' : 'alert alert-danger';
+      }
+
+      const parts = location.pathname.split('/');
+      const last  = parts[parts.length - 1];
+
+      if (!isNaN(last)) {
+        fetch('/assets/get/' + last)
+          .then(r => r.json())
+          .then(d => {
+            if (d.success && d.asset) {
+              const a = d.asset;
+              assetId.value  = a.asset_id;
+              serial.value   = a.c_serial ?? '';
+              type.value     = a.c_type ?? '';
+              make.value     = a.c_make ?? '';
+              model.value    = a.c_model ?? '';
+              branch.value   = a.c_branch ?? '';
+              value.value    = a.n_value ?? '';
+              status.checked = a.n_status === 1;
+            } else showMessage('Error: ' + (d.error || 'Asset not found'), false);
+          })
+          .catch(() => showMessage('Error loading asset', false));
+      }
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const id = assetId.value;
+        const url = id ? '/assets/edit/' + id : '/assets/create';
+
+        fetch(url, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            serial: serial.value.trim(),
+            type: type.value,
+            make: make.value.trim(),
+            model: model.value.trim(),
+            branch: branch.value.trim(),
+            n_value: parseFloat(value.value),
+            status: status.checked ? 1 : 0
+          })
+        })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) {
+            showMessage(id ? 'Asset updated successfully!' : 'Asset created successfully!', true);
+            setTimeout(() => location.href='/assets', 1000);
+          } else showMessage('Error: ' + (d.error || 'Failed to save'), false);
+        })
+        .catch(() => showMessage('Server error', false));
+      });
+    });

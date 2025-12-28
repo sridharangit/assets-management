@@ -1,183 +1,15 @@
-//- extends layout
-
-//- block content
-//-   // Include SweetAlert2 CSS
-//-   link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css")
-
-//-   .p-4
-//-     .card.shadow-sm.rounded-4.p-3
-//-       h3.fw-bold.mb-3.text-dark Employee Management
-      
-//-       a.btn.btn-primary.mb-3.rounded-3(href="/employee/create" style="width: 200px;")
-//-         i.bi.bi-person-plus-fill.me-2
-//-         | Add Employee
-
-//-       // Filters
-//-       .d-flex.mb-3
-//-         select#statusFilter.form-select.me-2(style="width:200px")
-//-           option(value="all" selected) All
-//-           option(value="1") Active
-//-           option(value="0") Inactive
-//-         input#nameSearch.form-control(type="text" placeholder="Search by name" style="width:200px")
-
-//-       // Table
-//-       table#empTable.table.table-striped.table-bordered.align-middle
-//-         thead.bg-dark.text-white
-//-           tr
-//-             th #
-//-             th Name
-//-             th Email
-//-             th Branch
-//-             th Status
-//-             th Action
-//-         tbody#empTbody
-//-           each emp, i in employee
-//-             tr(
-//-               data-id=emp.employee_id 
-//-               data-name=emp.c_name 
-//-               data-email=emp.c_email 
-//-               data-branch=emp.c_branch 
-//-               data-status=emp.n_status
-//-             )
-//-               td #{i+1}
-//-               td #{emp.c_name}
-//-               td #{emp.c_email}
-//-               td #{emp.c_branch}
-//-               td
-//-                 if emp.n_status == 1
-//-                   span.badge.bg-success Active
-//-                 else
-//-                   span.badge.bg-secondary Inactive
-//-               td
-//-                 button.btn.btn-sm.btn-warning.me-2.edit-btn(type="button")
-//-                   i.bi.bi-pencil-fill
-//-                 button.btn.btn-sm.btn-danger.delete-btn(type="button")
-//-                   i.bi.bi-trash-fill
-
-//-       // Pagination
-//-       .d-flex.justify-content-between.mt-3
-//-         button#prevBtn.btn.btn-outline-primary(type="button") Previous
-//-         span#pageInfo
-//-         button#nextBtn.btn.btn-outline-primary(type="button") Next
-
-//-   // Include SweetAlert2 JS at the bottom
-//-   script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js")
-//-   script.
-//-     document.addEventListener('DOMContentLoaded', () => {
-//-       let employees = Array.from(document.querySelectorAll('#empTbody tr'));
-//-       const statusFilter = document.getElementById('statusFilter');
-//-       const nameSearch = document.getElementById('nameSearch');
-//-       const prevBtn = document.getElementById('prevBtn');
-//-       const nextBtn = document.getElementById('nextBtn');
-//-       const pageInfo = document.getElementById('pageInfo');
-
-//-       let currentPage = 1;
-//-       const rowsPerPage = 5;
-
-//-       function filterEmployees() {
-//-         const statusVal = statusFilter.value;
-//-         const nameVal = nameSearch.value.toLowerCase();
-
-//-         return employees.filter(tr => {
-//-           const name = tr.dataset.name.toLowerCase();
-//-           const status = tr.dataset.status;
-//-           const statusMatch = (statusVal === 'all') || (status === statusVal);
-//-           const nameMatch = name.includes(nameVal);
-//-           return statusMatch && nameMatch;
-//-         });
-//-       }
-
-//-       function renderTable() {
-//-         const tbody = document.getElementById('empTbody');
-//-         tbody.innerHTML = '';
-
-//-         const filtered = filterEmployees();
-//-         const totalPages = Math.ceil(filtered.length / rowsPerPage);
-//-         if(currentPage > totalPages) currentPage = totalPages || 1;
-
-//-         const start = (currentPage -1) * rowsPerPage;
-//-         const end = start + rowsPerPage;
-//-         const paginated = filtered.slice(start, end);
-
-//-         paginated.forEach((tr, index) => {
-//-           tr.querySelector('td:first-child').innerText = start + index + 1;
-//-           tbody.appendChild(tr);
-//-         });
-
-//-         pageInfo.innerText = `Page ${currentPage} of ${totalPages || 1}`;
-//-         attachRowEvents();
-//-       }
-
-//-       function attachRowEvents() {
-//-         document.querySelectorAll('.edit-btn').forEach(btn => {
-//-           btn.addEventListener('click', () => {
-//-             const tr = btn.closest('tr');
-//-             const id = tr.dataset.id;
-//-             const name = tr.dataset.name;
-//-             const email = tr.dataset.email;
-//-             const branch = tr.dataset.branch;
-//-             const status = tr.dataset.status;
-
-//-             window.location.href = `/employee/create?id=${id}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&branch=${encodeURIComponent(branch)}&status=${status}`;
-//-           });
-//-         });
-
-//-         document.querySelectorAll('.delete-btn').forEach(btn => {
-//-           btn.addEventListener('click', () => {
-//-             const tr = btn.closest('tr');
-//-             const id = tr.dataset.id;
-
-//-             Swal.fire({
-//-               title: 'Are you sure?',
-//-               text: "You won't be able to revert this!",
-//-               icon: 'warning',
-//-               showCancelButton: true,
-//-               confirmButtonColor: '#d33',
-//-               cancelButtonColor: '#3085d6',
-//-               confirmButtonText: 'Yes, delete it!'
-//-             }).then((result) => {
-//-               if (result.isConfirmed) {
-//-                 fetch(`/employee/delete/${id}`, { method: 'POST' })
-//-                 .then(res => res.json())
-//-                 .then(res => {
-//-                   if(res.success){
-//-                     employees = employees.filter(e => e !== tr);
-//-                     renderTable();
-//-                     Swal.fire('Deleted!', 'Employee has been deleted.', 'success');
-//-                   } else {
-//-                     Swal.fire('Error', res.error, 'error');
-//-                   }
-//-                 })
-//-                 .catch(err => console.error(err));
-//-               }
-//-             });
-//-           });
-//-         });
-//-       }
-
-//-       statusFilter.addEventListener('change', () => { currentPage = 1; renderTable(); });
-//-       nameSearch.addEventListener('input', () => { currentPage = 1; renderTable(); });
-//-       prevBtn.addEventListener('click', () => { if(currentPage>1){ currentPage--; renderTable(); }});
-//-       nextBtn.addEventListener('click', () => { 
-//-         const filtered = filterEmployees();
-//-         const totalPages = Math.ceil(filtered.length / rowsPerPage);
-//-         if(currentPage<totalPages){ currentPage++; renderTable(); }
-//-       });
-
-//-       renderTable();
-//-     });
 extends layout
 
 block content
   .p-4
     .card.shadow-sm.rounded-4.p-3
-      h3.fw-bold.mb-3.text-dark Employee List
+      div.display-flex
+        h4.fw-bold.mb-3.text-dark Employee List
 
-      a.btn.btn-primary.mb-3.rounded-3(href="/employee/create" style="width: 200px; float: right;")
-        i.bi.bi-person-plus-fill.me-2
-        | Add Employee
+        a.btn.btn-primary.mb-3.rounded-3(href="/employee/create" style="float: right;margin-top: -27px;")
+          i.bi.bi-person-plus-fill.me-2
+          | Add Employee
 
-      // Filters
       .d-flex.mb-3.align-items-center.g-3
         label.me-2.mb-0(for="statusFilter") Filter:
         select#statusFilter.form-select.me-4(style="width:200px")
@@ -188,8 +20,6 @@ block content
         label.me-2.mb-0(for="nameSearch") Search:
         input#nameSearch.form-control(style="width:200px" placeholder="Search by name")
 
-
-      // Table
       table#empTable.table.table-striped.table-bordered.align-middle
         thead.bg-dark.text-white
           tr
@@ -217,7 +47,6 @@ block content
                 button.btn.btn-sm.btn-danger(type="button" onclick=`showDeleteModal(${emp.employee_id})`)
                   i.bi.bi-trash-fill
 
-  // Delete Confirmation Modal
   div#deleteModal.modal.fade(tabindex="-1" aria-hidden="true")
     div.modal-dialog
       div.modal-content
@@ -230,29 +59,17 @@ block content
           button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancel
           button#confirmDelete.btn.btn-danger(type="button") Delete
 
-  // Required CSS and JS includes for Bootstrap & DataTables
   block scripts
-    // Bootstrap CSS & JS (if not already in layout)
-    link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css")
-    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js")
-
-    // DataTables CSS & JS
-    link(rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css")
-    script(src="https://code.jquery.com/jquery-3.7.0.min.js")
-    script(src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js")
-    script(src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js")
-
     script.
       $(document).ready(function() {
         const table = $('#empTable').DataTable({
           pageLength: 5,
           lengthChange: false,
           columnDefs: [
-            { orderable: false, targets: 5 } // Disable sorting on Action column
+            { orderable: false, targets: 5 }
           ]
         });
 
-        // Custom filter for Status dropdown
         $('#statusFilter').on('change', function() {
           const val = this.value;
           if(val === 'all') {
@@ -264,22 +81,18 @@ block content
           }
         });
 
-        // Custom search input for Name column
         $('#nameSearch').on('keyup', function() {
           table.column(1).search(this.value).draw();
         });
 
-        // Variables for delete modal and employee ID
         let deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
         let employeeToDeleteId = null;
 
-        // Show delete modal function (called by button)
         window.showDeleteModal = function(employeeId) {
           employeeToDeleteId = employeeId;
           deleteModal.show();
         }
 
-        // Confirm delete button click handler
         $('#confirmDelete').on('click', function() {
           if(!employeeToDeleteId) return;
 
@@ -287,7 +100,6 @@ block content
             .then(res => res.json())
             .then(data => {
               if(data.success) {
-                // Remove row from DataTable
                 table
                   .rows(function(idx, data, node) {
                     return $(node).find('button.btn-danger').attr('onclick').includes(employeeToDeleteId);
@@ -306,7 +118,6 @@ block content
             });
         });
 
-        // Edit employee button function
         window.editEmployee = function(employeeId) {
           window.location.href = `/employee/create?id=${employeeId}`;          
         }

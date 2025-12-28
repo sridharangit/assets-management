@@ -1,0 +1,78 @@
+extends layout
+
+block content
+  .p-4
+    .card.shadow-sm.rounded-4.p-3
+      h4.fw-bold.mb-3.text-dark #{category ? 'Edit Category' : 'Add Asset Category'}
+      div#alertBox.alert.mb-3.mt-3(style="display:none")
+      form#catForm
+        input(type="hidden" id="categoryId")
+
+        .row.mb-3
+          .col-md-4
+            label.form-label Category Name *
+            input#name.form-control(type="text" maxlength="50" required placeholder="Enter category name")
+          .col-md-4
+            label.form-label Description
+            input#desc.form-control(type="text" maxlength="100" placeholder="Enter description")
+          .col-md-4.d-flex.align-items-center
+            .form-check.mt-4
+              input#status.form-check-input(type="checkbox" checked)
+              label.form-check-label.ms-2 Active
+
+        button.btn.btn-primary.mt-3(type="submit") #{category ? 'Update Category' : 'Create Category'}
+
+  script.
+    document.addEventListener('DOMContentLoaded',()=>{
+      const form = document.getElementById('catForm');
+      const alertBox = document.getElementById('alertBox');
+      const idBox = document.getElementById('categoryId');
+      const name = document.getElementById('name');
+      const desc = document.getElementById('desc');
+      const status = document.getElementById('status');
+
+        const pathParts = location.pathname.split('/');
+        const id = pathParts[pathParts.length - 1];
+        if(id){
+            fetch('/assets-category/get/' + id)
+            .then(r=>r.json())
+            .then(d=>{
+            if(d.success && d.category){
+                idBox.value = d.category.category_id;
+                name.value = d.category.c_name ?? '';
+                desc.value = d.category.c_desc ?? '';
+                status.checked = d.category.n_status === 1;
+            }
+            });
+        }
+        
+      function showMessage(msg, ok=true){
+        alertBox.style.display='block';
+        alertBox.innerText=msg;
+        alertBox.className = ok?'alert alert-success':'alert alert-danger';
+      }
+
+      form.addEventListener('submit', e=>{
+        e.preventDefault();
+        const id = idBox.value;
+        const url = id?'/assets-category/edit/'+id:'/assets-category/create';
+
+        fetch(url,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            name: name.value.trim(),
+            desc: desc.value.trim(),
+            status: status.checked
+          })
+        })
+        .then(r=>r.json())
+        .then(d=>{
+          if(d.success){
+            showMessage(id?'Category updated!':'Category created!');
+            setTimeout(()=>location.href='/assets-category',1000);
+          } else showMessage(d.error,false);
+        })
+        .catch(err=>showMessage('Server error',false));
+      });
+    });

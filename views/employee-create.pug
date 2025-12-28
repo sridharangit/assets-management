@@ -3,25 +3,25 @@ extends layout
 block content
   .p-4
     .card.shadow-sm.rounded-4.p-3
-      h3.fw-bold.mb-3.text-dark #{editMode ? 'Edit Employee' : 'Add Employee'}
-
+      h4.fw-bold.mb-3.text-dark #{editMode ? 'Edit Employee' : 'Add Employee'}
+      div#alertBox.alert-box.mb-3.mt-3
       form#employeeForm
         input(type="hidden" name="id" id="empId")
 
-        // First row
         .row.mb-3
           .col-md-4
             label.form-label Name *
-            input#empName.form-control(type="text" name="name" required placeholder="Enter employee name")
+            input#empName.form-control(type="text" name="name" maxlength="50" required placeholder="Enter employee name")
           .col-md-4
-            label.form-label Email *
-            input#empEmail.form-control(type="email" name="email" required placeholder="Enter employee email")
+            label.form-label Email ID *
+            input#empEmail.form-control(type="email" name="email" maxlength="50" required placeholder="Enter employee email")
+          .col-md-4
+            label.form-label Mobile No *
+            input#empMobile.form-control(type="mobile" name="mobile" maxlength="50" required placeholder="Enter employee mobile")
+        .row.mb-3
           .col-md-4
             label.form-label Branch
-            input#empBranch.form-control(type="text" name="branch" placeholder="Enter branch")
-
-        // Second row - status checkbox aligned left
-        .row.mb-3
+            input#empBranch.form-control(type="text" name="branch" maxlength="50" placeholder="Enter branch")
           .col-md-4.d-flex.align-items-center
             .form-check
               input#empStatus.form-check-input(type="checkbox" name="status" checked)
@@ -29,24 +29,25 @@ block content
 
         button#submitBtn.btn.btn-primary.mt-3(type="submit") #{editMode ? 'Update Employee' : 'Create Employee'}
 
-      .mt-3
-        span#msg.text-success
-
-  // Script directly in content block
   script.
     document.addEventListener('DOMContentLoaded', () => {
-      const empId = document.getElementById('empId');
-      const empName = document.getElementById('empName');
-      const empEmail = document.getElementById('empEmail');
+      const empName   = document.getElementById('empName');
+      const empEmail  = document.getElementById('empEmail');
+      const empMobile = document.getElementById('empMobile');
       const empBranch = document.getElementById('empBranch');
       const empStatus = document.getElementById('empStatus');
       const submitBtn = document.getElementById('submitBtn');
-      const form = document.getElementById('employeeForm');
-      const msg = document.getElementById('msg');
+      const form      = document.getElementById('employeeForm');
+      const alertBox  = document.getElementById('alertBox');
 
-      // Get editMode from URL
+      function showMessage(text, type){
+        alertBox.innerText = text;
+        alertBox.className = 'alert-box ' + type;
+        alertBox.style.display = 'block';
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
-      const editMode = urlParams.has('id');
+      const editMode  = urlParams.has('id');
 
       if(editMode){
         const id = urlParams.get('id');
@@ -55,52 +56,55 @@ block content
           .then(data => {
             if(data.success){
               const emp = data.employee;
-              empId.value = emp.employee_id;
-              empName.value = emp.c_name;
-              empEmail.value = emp.c_email;
-              empBranch.value = emp.c_branch;
+              document.getElementById('empId').value = emp.employee_id;
+              empName.value   = emp.c_name ?? '';
+              empEmail.value  = emp.c_email ?? '';
+              empBranch.value = emp.c_branch ?? '';
+              empMobile.value = emp.c_mobile ?? '';
               empStatus.checked = emp.n_status === 1;
               submitBtn.innerText = 'Update Employee';
             } else {
-              msg.innerText = 'Error: ' + data.error;
+              showMessage('Error: ' + data.error, 'error');
             }
           })
           .catch(err => {
             console.error(err);
-            msg.innerText = 'Error loading employee data.';
+            showMessage('Error loading employee data.', 'error');
           });
       }
 
       form.addEventListener('submit', function(e){
         e.preventDefault();
 
-        const data = {
+        const payload = {
           name: empName.value.trim(),
           email: empEmail.value.trim(),
           branch: empBranch.value.trim(),
+          mobile: empMobile.value,
           status: empStatus.checked ? 1 : 0
         };
 
-        const id = empId.value;
+        const id  = document.getElementById('empId').value;
         const url = id ? `/employee/edit/${id}` : '/employee/create';
 
         fetch(url, {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(data)
+          body: JSON.stringify(payload)
         })
         .then(res => res.json())
         .then(res => {
           if(res.success){
-            msg.innerText = id ? 'Employee updated successfully!' : 'Employee created successfully!';
+            showMessage(id ? 'Employee updated successfully!' : 'Employee created successfully!', 'success');
             setTimeout(() => window.location.href = '/employee', 1000);
           } else {
-            msg.innerText = 'Error: ' + res.error;
+            showMessage('Error: ' + res.error, 'error');
           }
         })
         .catch(err => {
           console.error(err);
-          msg.innerText = 'An error occurred while saving.';
+          showMessage('An error occurred while saving.', 'error');
         });
       });
     });
+
