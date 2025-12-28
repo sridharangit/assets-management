@@ -21,7 +21,7 @@ exports.createCategory = async (req, res) => {
 exports.showEditForm = async (req, res) => {
   try {
     const cat = await Category.findByPk(req.params.id);
-    console.log(req.params.id);
+    // console.log(req.params.id);
 
     if (!cat) return res.redirect('/assets-category');
     res.render('assets-category-create', { category: cat, editMode: true });
@@ -63,7 +63,7 @@ exports.deleteCategory = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    console.log(req);
+    // console.log(req);
     const cat = await Category.findByPk(req.params.id);
     if(!cat) return res.json({ success: false, error: 'Category not found' });
     res.json({ success: true, category: cat });

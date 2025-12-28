@@ -10,9 +10,10 @@ app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'pug');
 app.set('views', './views');
 
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
 app.use('/', require('./routes/userlogin'));
 app.use('/employee', require('./routes/employee'));
 app.use('/assets', require('./routes/assets'));

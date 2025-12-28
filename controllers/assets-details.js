@@ -15,14 +15,14 @@ exports.showIssueForm = async (req, res) => {
 
     const details = await AssetDetail.findAll({ where: { employee_id: null, is_scrapped: 0 } });
 
-    console.log("Assets:", assets.map(a => a.asset_id));
-    console.log("Details:", details.map(d => d.asset_id));
+    // console.log("Assets:", assets.map(a => a.asset_id));
+    // console.log("Details:", details.map(d => d.asset_id));
 
     const available = assets.filter(a =>
       details.some(d => d.asset_id == a.asset_id)
     );
 
-    console.log("Available:", available);
+    // console.log("Available:", available);
 
     res.render('issue-asset', { employees, assets: available });
   } catch (err) {
